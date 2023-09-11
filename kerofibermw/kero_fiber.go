@@ -15,7 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 )
 
-// RequestTracker is Gin middleware function that installs the request tracker.
+// RequestTracker is a Fiber middleware function that installs the request tracker.
 func RequestTracker(k *kero.Kero) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if k.ShouldTrackHttpRequest(c.Path()) {
@@ -25,7 +25,7 @@ func RequestTracker(k *kero.Kero) fiber.Handler {
 				Headers:  copyHeaders(c.GetReqHeaders()),
 				ClientIp: c.IP(),
 				Query:    copyQuery(c.Queries()),
-				// INNACURATE https://docs.gofiber.io/api/ctx#route
+				// (TODO) How to get the route in Fiber given: https://docs.gofiber.io/api/ctx#route
 				// Route: c.Route().Path,
 			}
 

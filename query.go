@@ -18,13 +18,13 @@ type Metric struct {
 }
 
 type AggregatedMetric struct {
-	Label string  `json:"label"`
+	Label string  `json:"label"` // Metric label as it was recorded or formatted with GroupMetricBy
 	Value float64 `json:"value"`
 }
 
 type GroupMetricBy func(m Metric) string
 
-// Query runs a simple query over the database within the specified timeframe, returning rows of matching metric, labels.
+// Query looks for matching metrics within the specified timeframe.
 func (k *Kero) Query(metric string, labelFilters MetricLabels, start int64, end int64) ([]Metric, error) {
 	q, err := k.db.Querier(context.Background(), start, end)
 	if err != nil {
@@ -55,7 +55,7 @@ func (k *Kero) Query(metric string, labelFilters MetricLabels, start int64, end 
 	return metrics, nil
 }
 
-// Count is an optimized version of AggregateDistinct counting occurrences of a metric in specified timeframe
+// Count is an optimized version of AggregateDistinct counting occurrences of a metric in the specified timeframe.
 func (k *Kero) Count(metric string, start int64, end int64) int {
 	q, err := k.db.Querier(context.Background(), start, end)
 	if err != nil {
@@ -81,7 +81,7 @@ func (k *Kero) Count(metric string, start int64, end int64) int {
 // CountHistogram returns metric count within the specified timeframe for each time subdivision
 // based on the duration between start and end time. Subdivisions are determined as follows:
 //
-//   - duration up to 3 days: 1 hour
+//   - duration up to 3 days: 72 subdivisions each of 1 hour
 //   - duration up to 31 days (ie. 1 month): 1 day
 //   - duration up to 93 days (ie. 3 months): 1 week
 //   - for durations longer than 3 months: 1 month
@@ -98,8 +98,8 @@ func (k *Kero) CountHistogram(metric string, start int64, end int64) [][2]int64 
 	return counts
 }
 
-// CountVisitors counts number of unique visitors for which an event has been tracked
-// within the specified timeframe matching specified filters.
+// CountVisitors counts number of unique visitors for which an event with matching filters has been tracked
+// within the specified timeframe.
 func (k *Kero) CountVisitors(metric string, labelFilters MetricLabels, start int64, end int64) (int, error) {
 	data, err := k.Query(metric, labelFilters, start, end)
 	if err != nil {
@@ -119,7 +119,7 @@ func (k *Kero) CountVisitors(metric string, labelFilters MetricLabels, start int
 }
 
 // VisitorsHistogram returns a number of unique visitors per time subdivision in the specified timeframe.
-// For time divisions see [Kero.CountHistogram].
+// See [Kero.CountHistogram] for reference on time subdivisions.
 func (k *Kero) VisitorsHistogram(metric string, filters MetricLabels, start int64, end int64) [][2]int64 {
 	timeframes := timeSplits(selectTimeUnitForTimeframe(start, end), start, end)
 	counts := make([][2]int64, len(timeframes))
@@ -140,11 +140,34 @@ func (k *Kero) VisitorsHistogram(metric string, filters MetricLabels, start int6
 type AggregationMethod int
 
 const (
-	AggregateCount AggregationMethod = iota // Aggregates by counting number of matched logs
-	AggregateSum                            // Aggregates by summing values of matched logs
-	AggregateAvg                            // Aggregates by calculating an average value of matched logs
+	AggregateCount AggregationMethod = iota // Aggregates by counting number of matched events
+	AggregateSum                            // Aggregates by summing values of matched events
+	AggregateAvg                            // Aggregates by calculating an average value of matched events
 )
 
+// AggregateDistinct provides advanced options to query the database.
+// Data can be filtered using the metric name or any combination of labels (including negation).
+// Additionally data can be grouped by a calculated key and aggregated using count, sum or average.
+// Example:
+//
+//	 func QueryExample() {
+//	   k, _ := kero.New(kero.WithDatabasePath("./kero"))
+//	   data, _ := k.AggregateDistinct(
+//	     "http_req", // get all "http_req" metrics
+//	     func(m Metric) string { return m.Labels["$city"] }, // group them by city
+//	     MetricLabels{ "country": "CH", "region!=": "ZH" } // filtering only requests coming from Switzerland, from any region except Zurich,
+//	     kero.AggregateCount, // and return only the count of matched rows
+//	     0, // from beginning of time
+//	     time.Now().Unix(), // ...until now
+//		  )
+//
+//	   fmt.Println("Found", len(data), "records:")
+//	   for _, row := range data {
+//	     fmt.Println(row.Value, "visitors from", row.Label)
+//	   }
+//	 }
+//
+// Results are sorted by highest value first.
 func (k *Kero) AggregateDistinct(
 	metricName string,
 	groupBy GroupMetricBy,
@@ -197,6 +220,7 @@ func (k *Kero) AggregateDistinct(
 	return allMetrics, nil
 }
 
+// CountDistinctByVisitor returns a number of unique visitors for which the matching events have been tracked.
 func (k *Kero) CountDistinctByVisitor(
 	metricName string,
 	groupBy GroupMetricBy,
@@ -237,7 +261,10 @@ func (k *Kero) CountDistinctByVisitor(
 	return allMetrics, nil
 }
 
-// Convenience method that's using groups metrics using the specified label
+// CountDistinctByVisitorAndLabel is a convenience method that's groups metrics simply by using the specified label.
+// If filtering by [Kero.HttpRouteLabel], requests are grouped by both the HTTP method and the route, this way
+// a distinction can be made between `GET /user/:id` and `POST /user/:id`.
+// Events without the label itselfz are excluded from the count.
 func (k *Kero) CountDistinctByVisitorAndLabel(
 	metric string,
 	label string,

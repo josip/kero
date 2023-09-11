@@ -113,7 +113,7 @@ func Main() {
 ```
 </details>
 
-Want to see support for other HTTP frameworks? [Submit a PR](./issues/new) or open a ticket.
+Want to see support for other HTTP frameworks? [Create a ticket](https://github.com/josip/kero/issues/new) or submit a PR :octocat:.
 
 ## Tracked visitor data
 
@@ -147,8 +147,8 @@ Value of DNT header value might be ignored.
 * Top form factors
 * Top browsers
 * Top operating systems
-* Top routes
-* Slowest routes
+* Top routes (ie. `/user/:id` vs `/user/id123`; not tracked with Fiber)
+* Slowest routes (not tracked with Fiber)
 * Top bots and HTTP libraries
 
 ## Who's using Kero
