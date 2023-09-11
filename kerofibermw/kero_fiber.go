@@ -31,7 +31,6 @@ func RequestTracker(k *kero.Kero) fiber.Handler {
 
 			k.TrackHttpRequest(trackedHttpReq)
 			if k.MeasureRequestDuration {
-				// TODO swallows errors
 				var err error
 				k.MeasureHttpRequest(trackedHttpReq, func() { err = c.Next() })
 				return err

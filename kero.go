@@ -19,6 +19,7 @@ type Kero struct {
 	MeasureRequestDuration bool
 	IgnoreCommonPaths      bool
 	IgnoreBots             bool
+	IgnoreDNT              bool
 }
 
 type MetricLabels map[string]string
@@ -152,6 +153,15 @@ func WithWebAssetsIgnored(value bool) KeroOption {
 func WithBotsIgnored(value bool) KeroOption {
 	return func(k *Kero) error {
 		k.IgnoreBots = value
+		return nil
+	}
+}
+
+// WithDntIgnored sets whether Kero should ignore value of DNT header. If configured to ignore,
+// requests with DNT: 1 (opt-out of tracking) will be still tracked.
+func WithDntIgnored(value bool) KeroOption {
+	return func(k *Kero) error {
+		k.IgnoreDNT = value
 		return nil
 	}
 }

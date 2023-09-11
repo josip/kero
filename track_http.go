@@ -93,11 +93,9 @@ func (k *Kero) ShouldTrackHttpRequest(path string) bool {
 }
 
 func (k *Kero) TrackWithRequest(metric string, labels MetricLabels, value float64, req TrackedHttpReq) error {
-	// TODO replace with std library function in go v1.21
-	// if slices.Contains(commonPaths, urlPath) {
-	// 	// ignoring common paths
-	// 	return nil
-	// }
+	if !k.IgnoreDNT && req.Headers.Get("DNT") == "1" {
+		return nil
+	}
 
 	clientIp := req.ClientIp
 	if len(clientIp) == 0 {

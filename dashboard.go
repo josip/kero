@@ -300,7 +300,8 @@ func (d *Dashboard) LoadData(k *Kero, timeframe string) {
 	}
 	start, end := parseTimeframeString(timeframe)
 	d.loadDataForTimeframe(k, start, end)
-	// TODO this should be probably somewhere else
+	// TODO this should be probably somewhere else it's needed here to build correct path
+	// to .css and .js assets in the outputted HTML
 	d.BasePath = k.DashboardPath
 }
 

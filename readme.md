@@ -115,32 +115,19 @@ func Main() {
 
 Want to see support for other HTTP frameworks? [Submit a PR](./issues/new) or open a ticket.
 
+## Tracked visitor data
 
-## Displayed data
-
-* Number of visitors in current and previous period (for comparison)
-* Number of views (requests) in current and previous period
-* Top pages
-* Top referrals (based on `Referrer` HTTP header)
-* Top locations (if enabled, based on IP and GeoIP address)
-* Top form factors (based on `User-Agent` HTTP header)
-* Top browsers (based on `User-Agent` HTTP header)
-* Top operating systems (based on `User-Agent` HTTP header)
-* Top routes (as defined in your HTTP framework of choice)
-* Slowest routes (if enabled, average response time in milliseconds)
-* Top bots and libraries (based on `User-Agent` HTTP header)
-
-## Tracked user data
-
-Availability and accuracy of the data collected varies and should be considered approximative as data .
+Availability and accuracy of the data collected varies and should be considered as best-effort since browsers themselves and user-installed extensions can introduce noisy data.
 
 * Browser name and its version
 * OS name and its version
-* Device name ()
+* Device name
 * Device form factor (phone, tablet, desktop, bot)
 * Referrer (based on HTTP header) and [UTM](https://en.wikipedia.org/wiki/UTM_parameters) query parameters
 * Country, region and city based on user's IP address (disabled by default)
 * Visitor ID (see below)
+
+Users's IP address and full user-agent string are nor stored nor logged in any manner by Kero. Other middleware or logging software might log it however.
 
 ## How are visitors counted?
 
@@ -148,7 +135,21 @@ Each visitor is assigned a hashed ID that encodes their IP address and values of
 
 As these values are not guaranteed to be unique even between consecutive visits of a same user on a same device, they have been selected for giving an approximate number of visitors while respecting their privacy as much as possible.
 
-DNT header value is ignored.
+Value of DNT header value might be ignored.
+
+## Displayed data
+
+* Number of visitors in current and previous period (for comparison)
+* Number of views (requests) in current and previous period
+* Top pages
+* Top referrals
+* Top locations
+* Top form factors
+* Top browsers
+* Top operating systems
+* Top routes
+* Slowest routes
+* Top bots and HTTP libraries
 
 ## Who's using Kero
 
