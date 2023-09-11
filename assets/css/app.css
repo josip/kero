@@ -1,0 +1,229 @@
+/* :root {
+    --background-primary: #fff;
+    --background-secondary: #f3f3f3;
+    --text-color-primary: #000;
+    --text-color-secondary: #999;
+} */
+
+/*** pico.css customizations ***/
+:root {
+    --font-family: "Inter", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --spacing: 0.5rem;
+    --grid-spacing-horizontal: 1.5rem;
+    --typography-spacing-vertical: 1rem;
+}
+
+article {
+    padding: var(--block-spacing-horizontal);
+}
+
+.grid>article {
+    margin-top: 0;
+}
+
+main.container {
+    padding-top: 0;
+}
+
+main.container>footer {
+    text-align: center;
+}
+
+dialog article>header {
+    margin-top: calc(var(--block-spacing-vertical) * -0.5);
+}
+
+/*** end customizations ***/
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    src: url('Inter-Regular.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    src: url('Inter-Bold.ttf') format('ttf');
+}
+
+#navbar-wrapper {
+    border-bottom: 1px solid var(--muted-border-color);
+    position: sticky;
+    top: 0px;
+    background: var(--background-color);
+    /* explicit z-index needed for frappe charts/svg */
+    z-index: 10;
+}
+
+#timeframe-selector a.active::after {
+    content: ' ✔︎';
+}
+
+article.stat>h6 {
+    margin-bottom: 0.5rem;
+}
+
+article.stat>table {
+    margin: 0;
+    table-layout: fixed;
+}
+
+table.linestat th,
+table.linestat td {
+    border-bottom: 0;
+}
+
+table.linestat>thead th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    padding-top: 0;
+    padding-bottom: 0;
+    color: var(--muted-color);
+}
+
+table.linestat>thead th:first-child,
+table.linestat>tbody th {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+table.linestat>thead th:last-child,
+table.linestat>tbody td {
+    text-align: right;
+    padding-right: 0;
+    width: 4rem;
+}
+
+table.linestat>tbody th {
+    position: relative;
+    overflow: hidden;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+}
+
+table.linestat th progress {
+    position: absolute;
+    top: calc(var(--spacing)/4);
+    pointer-events: none;
+    display: block;
+    height: calc(var(--font-size) + var(--spacing)*1.5);
+    border-radius: var(--border-radius);
+    background: transparent;
+    margin: 0;
+    --progress-color: var(--primary-focus);
+}
+
+table.linestat th .label {
+    padding-left: var(--spacing);
+    position: relative;
+    z-index: 1;
+}
+
+table.linestat td span[data-tooltip] {
+    border-bottom: none;
+    cursor: default;
+}
+
+article.stat table.linestat tr:nth-child(n+6) {
+    display: none;
+}
+
+dialog table.linestat {
+    table-layout: fixed;
+}
+
+dialog table.linestat tfoot {
+    display: none;
+}
+
+article.stat .no-data {
+    color: var(--secondary);
+}
+
+article.tabs div[role=tablist] {
+    border-bottom: 1px solid var(--accordion-border-color);
+    display: flex;
+    column-gap: var(--nav-element-spacing-horizontal);
+}
+
+article.tabs div[role=tablist] button[role=tab] {
+    display: block;
+    padding: var(--nav-element-spacing-vertical) var(--nav-element-spacing-horizontal);
+    text-decoration: none;
+    color: var(--secondary);
+    border: 0;
+    border-radius: 0;
+    border-bottom: 2px solid var(--card-background-color);
+    text-align: left;
+    flex: 0;
+    background-color: var(--card-background-color);
+    margin: 0;
+}
+
+article.tabs div[role=tablist] button[role=tab]:hover {
+    color: var(--h1-color);
+    border-bottom-color: var(--h1-color);
+}
+
+article.tabs div[role=tablist]:first-child button[role=tab] {
+    padding-top: 0;
+}
+
+article.tabs div[role=tablist] button[role=tab][aria-selected=true],
+article.tabs div[role=tablist] button[role=tab]:focus {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background-color: var(--card-background-color);
+    box-shadow: none;
+}
+
+article.tabs button[role=tab] strong {
+    display: block;
+    font-size: 2rem;
+}
+
+.vertical-bars {
+    display: flex;
+    column-gap: 4px;
+    align-items: flex-end;
+    height: 120px;
+}
+
+.vertical-bars .bar {
+    flex: 1;
+    background: var(--primary-focus);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    border-bottom: none;
+    cursor: default;
+    min-height: 1px;
+}
+
+hgroup .big-number {
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+hgroup .trend {
+    border-bottom: none;
+    cursor: default;
+}
+
+hgroup .trend.up {
+    color: var(--ins-color);
+}
+
+hgroup .trend.up .sign {
+    content: '+';
+}
+
+hgroup .trend.down {
+    color: var(--del-color);
+}
+
+hgroup .trend.down .sign {
+    content: '-';
+}

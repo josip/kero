@@ -1,0 +1,127 @@
+{{define "StatCard"}}
+<article class="stat">
+    <h6>{{ .Title }}</h6>
+    {{if not .Data}}
+    <span class="no-data">No data</span>
+    {{else}}
+    <table class="linestat">
+        <thead>
+            <th scope="col">{{ .UnitDisplayLabel }}</th>
+            <th scope="col">{{ .CountLabel }}</th>
+        </thead>
+        <tbody>
+            {{ $max := (index .Data 0).Value }}
+            {{range .Data }}
+            <tr>
+                <th scope="row">
+                    <span class="label">{{ .Label }}</span>
+                    <progress max="{{ $max }}" value="{{ .Value }}"></progress>
+                </th>
+                <td>{{ printf "%.0f" .Value }}</td>
+            </tr>
+            {{end}}
+        </tbody>
+        {{if (gt (len .Data) 5)}}
+        <tfoot>
+            <tr>
+                <td colspan="2"><a href="#" class="show-all">Show all {{ len .Data }}</a></td>
+            </tr>
+        </tfoot>
+        {{end}}
+    </table>
+    {{end}}
+</article>
+{{end}}
+{{define "VerticalBarChart"}}
+<div class="vertical-bars">
+{{ range . }}
+    <div class="bar" style="height: {{ .Percent }}%" data-tooltip="{{ .FormattedTimestamp }}: {{ .Value }}"></div>
+{{ end }}
+</div>
+{{end}}
+{{define "TrendLabel"}}
+<span class="big-number" data-localize-number>{{.CurrentValue}}</span>
+{{if (eq .PercentChange 0.0)}}
+    <small class="trend same" data-tooltip="No change from previous period">&pm;0%</small>
+{{else}}
+    {{if (gt .PreviousValue 0) }}
+    <small
+        class="trend {{if (gt .PercentChange 0.0)}}up{{else}}down{{end}}"
+        data-tooltip="{{ .PreviousValue }} in previous period">
+        {{ printf "%+.2f" .PercentChange }}%
+    </small>
+    {{end}}
+{{end}}
+{{end}}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Kero</title>
+
+        <link rel="stylesheet" href="{{.BasePath}}/assets/css/pico.min.css" />
+        <link rel="stylesheet" href="{{.BasePath}}/assets/css/app.css" />
+
+        <script src="{{.BasePath}}/assets/js/index.js" type="module"></script>
+    </head>
+    <body>
+        <div id="navbar-wrapper">
+            <nav class="container">
+                <ul>
+                    <li><strong>{{ .Title }}</strong></li>
+                </ul>
+                <ul>
+                    <li>
+                      <details role="list" dir="rtl" id="timeframe-selector">
+                        <summary aria-haspopup="listbox" role="link" id="selected-timeframe-label">Timeframe</summary>
+                        <ul role="listbox">
+                            <li><a href="?t=t">Today</a></li>
+                            <li><a href="?t=24h">Past 24 hours</a></li>
+                            <li><a href="?t=7d">Past 7 days</a></li>
+                            <li><a href="?t=30d">Past 30 days</a></li>
+                            <li><a href="?t=12m">Past 12 months</a></li>
+                            <li><a href="?t=mtd">Month to date</a></li>
+                            <li><a href="?t=ytd">Year to date</a></li>
+                        </ul>
+                      </details>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <main class="container">
+            <br/>
+            <div class="grid">
+                <article>
+                    <hgroup>
+                        <h6>Visitors</h6>
+                        {{ template "TrendLabel" .VisitorsTrend }}
+                    </hgroup>
+                    {{ template "VerticalBarChart" .VisitorsChartData }}
+                </article>
+
+                <article>
+                    <hgroup>
+                        <h6>Views</h6>
+                        {{ template "TrendLabel" .ViewsTrend }}
+                    </hgroup>
+                    {{ template "VerticalBarChart" .ViewsChartData }}
+                </article>
+            </div>
+
+        {{range .Rows}}
+            <div class="grid">
+                {{range .}}
+                    {{ template "StatCard" . }}
+                {{end}}
+            </div>
+        {{end}}
+
+        {{if .ShowFooter}}
+        <footer>
+            <hr/>
+            <small>Dashboard by <a href="https://github.com/josip/kero" target="_blank" rel="noreferrer">Kero</a></small>
+        </footer>
+        {{end}}
+        </main>
+    </body>
+</html>
