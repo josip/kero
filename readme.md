@@ -127,15 +127,21 @@ Availability and accuracy of the data collected varies and should be considered 
 * Country, region and city based on user's IP address (disabled by default)
 * Visitor ID (see below)
 
-Users's IP address and full user-agent string are nor stored nor logged in any manner by Kero. Other middleware or logging software might log it however.
+IP addresses and full `User-Agent` strings are nor stored nor logged in any manner by Kero. However other middleware or logging libraries might do so.
 
 ## How are visitors counted?
 
 Each visitor is assigned a hashed ID that encodes their IP address and values of `Accept`, `Accept-Encoding`, `Accept-Language` and `User-Agent` HTTP headers.
 
-As these values are not guaranteed to be unique even between consecutive visits of a same user on a same device, they have been selected for giving an approximate number of visitors while respecting their privacy as much as possible.
+As these values are not guaranteed to be unique even between consecutive visits of the same user they have been selected to provide an approximate data, while at the same time respecting user privacy as much as possible.
 
-Value of DNT header value might be ignored.
+Value of the DNT header might be ignored.
+
+## Tracked request metadata
+
+* Request duration, if enabled
+* Route (ie. `/user/:id` vs `/user/kero`; not tracked with Fiber)
+* Distinction whether request was made by a web browser or programatically via different HTTP client libraries
 
 ## Displayed data
 
@@ -147,9 +153,13 @@ Value of DNT header value might be ignored.
 * Top form factors
 * Top browsers
 * Top operating systems
-* Top routes (ie. `/user/:id` vs `/user/id123`; not tracked with Fiber)
+* Top routes
 * Slowest routes (not tracked with Fiber)
 * Top bots and HTTP libraries
+
+## Data storage
+
+Kero is using [TSDB](https://pkg.go.dev/github.com/prometheus/tsdb) from Prometheus to store the data on the disk.
 
 ## Who's using Kero
 
