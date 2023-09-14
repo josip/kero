@@ -1,6 +1,6 @@
 module github.com/josip/kero
 
-go 1.20
+go 1.21
 
 require (
 	github.com/gin-gonic/gin v1.9.1
@@ -8,7 +8,7 @@ require (
 	github.com/josip/timewarp v1.0.0
 	github.com/mileusna/useragent v1.3.3
 	github.com/oschwald/geoip2-golang v1.9.0
-	github.com/prometheus/prometheus v0.46.0
+	github.com/prometheus/prometheus v0.47.0
 )
 
 require (
