@@ -15,6 +15,9 @@ const WaitPath = "/wait"
 const WaitDuration = time.Duration(123 * time.Millisecond)
 const DashUsername = "admin"
 const DashPass = "pass"
+const PixelPath = "/px.gif"
+const pixelReferrerPath = "/blog/hello-mars"
+const pixelReferrer = "http://localhost:1234" + pixelReferrerPath
 
 var WaitRequest = httptest.NewRequest("GET", WaitPath, nil)
 
@@ -125,5 +128,30 @@ func ExpectDurationTracked(t *testing.T, k *kero.Kero) {
 
 	if records[0].Value < float64(WaitDuration.Milliseconds()) {
 		t.Error("expected request to take at least 100ms, got", records[0].Value)
+	}
+}
+
+func PixelRequest() *http.Request {
+	req := httptest.NewRequest("GET", PixelPath, nil)
+	req.Header.Add("Referer", pixelReferrer)
+	return req
+}
+
+func ExpectPixelToTrack(t *testing.T, k *kero.Kero) {
+	res, err := k.Query(
+		kero.HttpReqMetricName,
+		kero.MetricLabels{
+			kero.HttpPathLabel: pixelReferrerPath,
+		},
+		0,
+		time.Now().Unix(),
+	)
+
+	if err != nil {
+		t.Fatal("failed to query db", err)
+	}
+
+	if len(res) != 1 {
+		t.Fatal("expected pixel to track paths but it did not")
 	}
 }

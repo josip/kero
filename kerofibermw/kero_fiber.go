@@ -15,20 +15,19 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 )
 
-// RequestTracker is a Fiber middleware function that installs the request tracker.
-func RequestTracker(k *kero.Kero) fiber.Handler {
+func Mount(app *fiber.App, k *kero.Kero, auth basicauth.Config) error {
+	mountDashboard(app, k, auth)
+	mountPixel(app, k)
+	app.Use(requestTracker(k))
+
+	return nil
+}
+
+// requestTracker is a Fiber middleware function that installs the request tracker.
+func requestTracker(k *kero.Kero) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if k.ShouldTrackHttpRequest(c.Path()) {
-			trackedHttpReq := kero.TrackedHttpReq{
-				Method:   c.Method(),
-				Path:     c.Path(),
-				Headers:  copyHeaders(c.GetReqHeaders()),
-				ClientIp: c.IP(),
-				Query:    copyQuery(c.Queries()),
-				// (TODO) How to get the route in Fiber given: https://docs.gofiber.io/api/ctx#route
-				// Route: c.Route().Path,
-			}
-
+			trackedHttpReq := trackedHttpReqFromCtx(c)
 			k.TrackHttpRequest(trackedHttpReq)
 			if k.MeasureRequestDuration {
 				var err error
@@ -40,6 +39,18 @@ func RequestTracker(k *kero.Kero) fiber.Handler {
 		} else {
 			return c.Next()
 		}
+	}
+}
+
+func trackedHttpReqFromCtx(c *fiber.Ctx) kero.TrackedHttpReq {
+	return kero.TrackedHttpReq{
+		Method:   c.Method(),
+		Path:     c.Path(),
+		Headers:  copyHeaders(c.GetReqHeaders()),
+		ClientIp: c.IP(),
+		Query:    copyQuery(c.Queries()),
+		// (TODO) How to get the route in Fiber given: https://docs.gofiber.io/api/ctx#route
+		// Route: c.Route().Path,
 	}
 }
 
@@ -65,7 +76,7 @@ func copyQuery(queries map[string]string) url.Values {
 
 // MountDashboard mounts the Kero dashboard interface.
 // The path is specified using `WithDashboardPath` configuration option when creating the Kero instance.
-func MountDashboard(app *fiber.App, k *kero.Kero, auth basicauth.Config) {
+func mountDashboard(app *fiber.App, k *kero.Kero, auth basicauth.Config) {
 	assetsFs, _ := fs.Sub(kero.DashboardWebAssets, "assets")
 	httpFS := http.FS(assetsFs)
 
@@ -91,4 +102,30 @@ func MountDashboard(app *fiber.App, k *kero.Kero, auth basicauth.Config) {
 		Root:   httpFS,
 		Browse: false,
 	}))
+}
+
+// mountPixel adds the pixel tracker to the Fiber app.
+func mountPixel(app *fiber.App, k *kero.Kero) {
+	if len(k.PixelPath) == 0 {
+		return
+	}
+
+	app.Get(k.PixelPath, func(c *fiber.Ctx) error {
+		if referrer, err := url.Parse(c.Get("Referer")); err == nil {
+			if k.ShouldTrackHttpRequest(referrer.Path) {
+				trackedHttpReq := trackedHttpReqFromCtx(c)
+				trackedHttpReq.Path = referrer.Path
+				trackedHttpReq.Route = ""
+				trackedHttpReq.Headers.Del("Referer")
+
+				k.TrackHttpRequest(trackedHttpReq)
+			}
+		}
+
+		c.Status(http.StatusOK)
+		c.Set("Content-Type", "image/gif")
+		c.Set("Expires", "Tue, 12 Sept 2023 06:00:00 GMT")
+		c.Set("Cache-Control", "private, max-age=0, no-cache, must-revalidate, proxy-revalidate")
+		return c.Send(kero.Pixel)
+	})
 }

@@ -1,8 +1,11 @@
 package kerofibermw_test
 
 import (
+	"image"
 	"testing"
 	"time"
+
+	_ "image/gif"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
@@ -19,10 +22,10 @@ func createServer(t *testing.T) (*fiber.App, *kero.Kero) {
 		kero.WithWebAssetsIgnored(true),
 		kero.WithRequestMeasurements(true),
 		kero.WithBotsIgnored(false),
+		kero.WithPixelPath(ktest.PixelPath),
 	)
 
-	app.Use(keromw.RequestTracker(k))
-	keromw.MountDashboard(app, k, basicauth.Config{
+	keromw.Mount(app, k, basicauth.Config{
 		Users: map[string]string{
 			ktest.DashUsername: ktest.DashPass,
 		},
@@ -78,4 +81,19 @@ func TestMeasureDuration(t *testing.T) {
 	}
 
 	ktest.ExpectDurationTracked(t, k)
+}
+
+func TestPixel(t *testing.T) {
+	app, k := createServer(t)
+	defer k.Close()
+
+	if resp, err := app.Test(ktest.PixelRequest()); err != nil {
+		t.Fatal("request failed", err)
+	} else {
+		if _, format, err := image.DecodeConfig(resp.Body); format != "gif" || err != nil {
+			t.Error("pixel was not a valid gif file", format, err)
+		}
+
+		ktest.ExpectPixelToTrack(t, k)
+	}
 }

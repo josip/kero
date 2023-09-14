@@ -6,13 +6,19 @@ import (
 
 func TestNewWithNoOptions(t *testing.T) {
 	if _, err := New(); err == nil {
-		t.Fatal("should fail with no options")
+		t.Error("should fail with no options")
 	}
 }
 
 func TestNewWithDBPath(t *testing.T) {
 	if _, err := New(WithDB(t.TempDir())); err != nil {
-		t.Fatal("should have succeeded with only DB path")
+		t.Error("should succeed with only DB path")
+	}
+}
+
+func TestNewWithInvalidDashboardPath(t *testing.T) {
+	if _, err := New(WithDB(t.TempDir()), WithDashboardPath("/")); err == nil {
+		t.Error("should fail with invalid dashboard path")
 	}
 }
 
@@ -23,13 +29,13 @@ func TestWithMultipleOptions(t *testing.T) {
 		WithDashboardPath("/kero"),
 	)
 	if err != nil {
-		t.Fatal("should have succeded with DB path provided")
+		t.Error("should succeed with DB path provided")
 	}
 	if k.IgnoreBots != true {
-		t.Fatal("IgnoreBots option not applied")
+		t.Error("IgnoreBots option not applied")
 	}
 	if k.DashboardPath != "/kero" {
-		t.Fatal("DashboardPath option not applied")
+		t.Error("DashboardPath option not applied")
 	}
 }
 

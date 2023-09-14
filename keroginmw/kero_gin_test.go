@@ -1,9 +1,12 @@
 package keroginmw_test
 
 import (
+	"image"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	_ "image/gif"
 
 	"github.com/gin-gonic/gin"
 	"github.com/josip/kero"
@@ -21,10 +24,10 @@ func createServer(t *testing.T) (*gin.Engine, *kero.Kero) {
 		kero.WithWebAssetsIgnored(true),
 		kero.WithRequestMeasurements(true),
 		kero.WithBotsIgnored(false),
+		kero.WithPixelPath(ktest.PixelPath),
 	)
 
-	r.Use(keromw.RequestTracker(k))
-	keromw.MountDashboard(r, k, gin.Accounts{
+	keromw.Mount(r, k, gin.Accounts{
 		ktest.DashUsername: ktest.DashPass,
 	})
 
@@ -73,4 +76,17 @@ func TestMeasureDuration(t *testing.T) {
 	r.ServeHTTP(w, ktest.WaitRequest)
 
 	ktest.ExpectDurationTracked(t, k)
+}
+
+func TestPixel(t *testing.T) {
+	r, k := createServer(t)
+	defer k.Close()
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, ktest.PixelRequest())
+	if _, format, err := image.DecodeConfig(w.Body); format != "gif" || err != nil {
+		t.Error("pixel was not a valid gif file", format, err)
+	}
+
+	ktest.ExpectPixelToTrack(t, k)
 }

@@ -2,6 +2,7 @@ package kero
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/oschwald/geoip2-golang"
@@ -16,6 +17,7 @@ type Kero struct {
 	geoDB                  *geoip2.Reader
 	reverseLookupIP        bool
 	DashboardPath          string
+	PixelPath              string
 	MeasureRequestDuration bool
 	IgnoreCommonPaths      bool
 	IgnoreBots             bool
@@ -98,6 +100,9 @@ func WithDB(dbPath string) KeroOption {
 // WithDashboardPath sets the URL at which the dashboard will be mounted. Defaults to `"/_kero"`.
 func WithDashboardPath(path string) KeroOption {
 	return func(k *Kero) error {
+		if !isValidPathArg(path) {
+			return errors.New("DashboardPath must start with / and have at least one more character")
+		}
 		k.DashboardPath = path
 		return nil
 	}
@@ -174,6 +179,20 @@ func WithRetention(duration time.Duration) KeroOption {
 	}
 }
 
+// WithPixelPath defines the route at which the pixel tracker will be available to external applications.
+// The pixel can be referenced from static websites or services not directly served by the Go server.
+// Requests referer header will be used as the path, with other headers and query parameters used unchanged.
+// Response of the pixel path will be a 1x1px transparent GIF.
+func WithPixelPath(path string) KeroOption {
+	return func(k *Kero) error {
+		if !isValidPathArg(path) {
+			return errors.New("PixelPath must start with / and have at least one more character")
+		}
+		k.PixelPath = path
+		return nil
+	}
+}
+
 func (k *Kero) Close() error {
 	return k.db.Close()
 }
@@ -188,4 +207,8 @@ func mergeMaps(maps ...map[string]string) map[string]string {
 		}
 	}
 	return result
+}
+
+func isValidPathArg(path string) bool {
+	return len(path) >= 2 && strings.HasPrefix(path, "/")
 }

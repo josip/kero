@@ -2,6 +2,7 @@ package kero
 
 import (
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"net"
 	"net/http"
@@ -11,6 +12,10 @@ import (
 
 	"github.com/mileusna/useragent"
 )
+
+// 1x1px transparent GIF. Source must be StackOverflow
+var Pixel, _ = base64.StdEncoding.DecodeString("R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==")
+var PixelSize = int64(len(Pixel))
 
 var commonAssetPrefixes = []string{
 	"/.",
@@ -68,6 +73,10 @@ func TrackedRequestFromHttp(httpReq *http.Request) TrackedHttpReq {
 
 func (k *Kero) ShouldTrackHttpRequest(path string) bool {
 	if strings.HasPrefix(path, k.DashboardPath) {
+		return false
+	}
+
+	if len(k.PixelPath) > 1 && k.PixelPath == path {
 		return false
 	}
 
@@ -156,7 +165,6 @@ func (k *Kero) visitorId(ip string, headers http.Header) MetricLabels {
 	id := strings.Join([]string{
 		ip,
 		headers.Get("user-agent"),
-		headers.Get("accept"),
 		headers.Get("accept-encoding"),
 		headers.Get("accept-language"),
 	}, "|")
