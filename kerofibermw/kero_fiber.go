@@ -54,11 +54,11 @@ func trackedHttpReqFromCtx(c *fiber.Ctx) kero.TrackedHttpReq {
 	}
 }
 
-func copyHeaders(h map[string]string) http.Header {
+func copyHeaders(h map[string][]string) http.Header {
 	headers := http.Header{}
 
 	for k, v := range h {
-		headers.Add(k, v)
+		headers.Add(k, v[0])
 	}
 
 	return headers
