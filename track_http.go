@@ -21,13 +21,17 @@ var commonAssetPrefixes = []string{
 	"/.",
 	"/_",
 	// various bad bots testing for wordpress
-	"/wp-",
+	"//",
+	"/wp",
 	"/public",
+	"/wordpress",
 }
 
 var commonAssetSuffixes = []string{
 	".js",
+	".js.map",
 	".css",
+	".css.map",
 	".png",
 	".jpg",
 	".jpeg",
@@ -37,7 +41,7 @@ var commonAssetSuffixes = []string{
 	".woff",
 	".woff2",
 	".otf",
-	".tff",
+	".ttf",
 	".ico",
 	".mov",
 	".mpg",
@@ -49,6 +53,7 @@ var commonAssetSuffixes = []string{
 	".php",
 	".asp",
 	".aspx",
+	".wlwmanifest.xml",
 }
 
 type TrackedHttpReq struct {
