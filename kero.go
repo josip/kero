@@ -22,6 +22,13 @@ type Kero struct {
 	IgnoreCommonPaths      bool
 	IgnoreBots             bool
 	IgnoreDNT              bool
+
+	// path prefixes to which requests will be ignored. see file for default list.
+	IgnoredPrefixes []string
+	// path suffixes to which requestw will be ignored. see file for default list.
+	IgnoredSuffixes []string
+	// user-agent values to be ignored. see file for default list.
+	IgnoredAgents []string
 }
 
 type MetricLabels map[string]string
@@ -55,6 +62,93 @@ const CityLabel = "$city"
 const IsBotLabel = "$is_bot"
 const VisitorIdLabel = "$visitor_id"
 
+var defaultIgnoredPathPrefixes = []string{
+	"/.",
+	"/_",
+	// various bad bots testing for wordpress
+	"//",
+	"/wp",
+	"/public",
+	"/wordpress",
+}
+
+var defaultIgnoredPathSuffixes = []string{
+	".js",
+	".js.map",
+	".css",
+	".css.map",
+	".png",
+	".jpg",
+	".jpeg",
+	".webp",
+	".gif",
+	".svg",
+	".woff",
+	".woff2",
+	".otf",
+	".ttf",
+	".ico",
+	".mov",
+	".mpg",
+	".mpg3",
+	".mpg4",
+	".wav",
+	".ogg",
+	// various bad bots
+	".php",
+	".asp",
+	".aspx",
+	".wlwmanifest.xml",
+}
+
+var defaultIgnoredAgents = []string{
+	// go
+	"go-http-client",
+	"github.com/monaco-io",
+	"gentleman",
+	// node.js
+	"node-fetch",
+	"undici",
+	"axios",
+	// objective-c + swift
+	"alamofire",
+	"nsurlconnection",
+	"nsurlsession",
+	"urlsession",
+	"swifthttp",
+	// python
+	"python-", //-urlib3, -requests
+	// java
+	"apache-httpclient",
+	// php requests
+	"php-",
+	"zend",
+	"laminas",
+	"guzzlehttp",
+	// c#/.net todo
+	// C/c++ todo
+	// apps
+	"curl",
+	"wget",
+	"rapidapi",
+	"postman",
+	// Apple App Site Association
+	"aasa",
+	// RSS readers
+	"linkship",
+	"feedbin",
+	"feedly",
+	"artykul",
+	// others
+	"x11",
+	// render.com health check
+	"render",
+	"dataprovider.com",
+	"researchscan",
+	"zgrab",
+	"NetcraftSurveyAgent",
+}
+
 type KeroOption func(*Kero) error
 
 // New automatically creates a new Kero database on-disk if one doesn't exist already.
@@ -85,6 +179,10 @@ func New(options ...KeroOption) (*Kero, error) {
 	if len(k.DashboardPath) == 0 {
 		k.DashboardPath = "/_kero"
 	}
+
+	k.IgnoredPrefixes = defaultIgnoredPathPrefixes
+	k.IgnoredSuffixes = defaultIgnoredPathSuffixes
+	k.IgnoredAgents = defaultIgnoredAgents
 
 	return k, nil
 }

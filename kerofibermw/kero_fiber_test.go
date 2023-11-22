@@ -97,3 +97,15 @@ func TestPixel(t *testing.T) {
 		ktest.ExpectPixelToTrack(t, k)
 	}
 }
+
+func TestIgnoreCustomPath(t *testing.T) {
+	app, k := createServer(t)
+	defer k.Close()
+
+	k.IgnoredPrefixes = append(k.IgnoredPrefixes, ktest.PrefixToIgnore)
+	if _, err := app.Test(ktest.IgnoredHelloRequest()); err != nil {
+		t.Fatal("request failed", err)
+	} else {
+		ktest.ExpectHelloIgnored(t, k)
+	}
+}

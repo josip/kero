@@ -18,6 +18,7 @@ const DashPass = "pass"
 const PixelPath = "/px.gif"
 const pixelReferrerPath = "/blog/hello-mars"
 const pixelReferrer = "http://localhost:1234" + pixelReferrerPath
+const PrefixToIgnore = "/hello"
 
 var WaitRequest = httptest.NewRequest("GET", WaitPath, nil)
 
@@ -153,5 +154,33 @@ func ExpectPixelToTrack(t *testing.T, k *kero.Kero) {
 
 	if len(res) != 1 {
 		t.Fatal("expected pixel to track paths but it did not")
+	}
+
+	res, err = k.Query(
+		kero.HttpReqMetricName,
+		kero.MetricLabels{
+			kero.HttpPathLabel: PixelPath,
+		},
+		0,
+		time.Now().Unix(),
+	)
+	if err != nil {
+		t.Fatal("failed to query db", err)
+	}
+
+	if len(res) != 0 {
+		t.Fatal("expected request to pixel path not to be tracked")
+	}
+}
+
+func IgnoredHelloRequest() *http.Request {
+	req := httptest.NewRequest("GET", "/hello/mars", nil)
+	return req
+}
+
+func ExpectHelloIgnored(t *testing.T, k *kero.Kero) {
+	tracked := k.Count(kero.HttpReqMetricName, 0, time.Now().Unix())
+	if tracked != 0 {
+		t.Fatal("expected request to ignore prefix not to be tracked")
 	}
 }

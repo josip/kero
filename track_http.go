@@ -17,45 +17,6 @@ import (
 var Pixel, _ = base64.StdEncoding.DecodeString("R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==")
 var PixelSize = int64(len(Pixel))
 
-var commonAssetPrefixes = []string{
-	"/.",
-	"/_",
-	// various bad bots testing for wordpress
-	"//",
-	"/wp",
-	"/public",
-	"/wordpress",
-}
-
-var commonAssetSuffixes = []string{
-	".js",
-	".js.map",
-	".css",
-	".css.map",
-	".png",
-	".jpg",
-	".jpeg",
-	".webp",
-	".gif",
-	".svg",
-	".woff",
-	".woff2",
-	".otf",
-	".ttf",
-	".ico",
-	".mov",
-	".mpg",
-	".mpg3",
-	".mpg4",
-	".wav",
-	".ogg",
-	// various bad bots
-	".php",
-	".asp",
-	".aspx",
-	".wlwmanifest.xml",
-}
-
 type TrackedHttpReq struct {
 	Method     string
 	Path       string
@@ -90,13 +51,13 @@ func (k *Kero) ShouldTrackHttpRequest(path string) bool {
 			return false
 		}
 
-		for _, prefix := range commonAssetPrefixes {
+		for _, prefix := range k.IgnoredPrefixes {
 			if strings.HasPrefix(path, prefix) {
 				return false
 			}
 		}
 
-		for _, suffix := range commonAssetSuffixes {
+		for _, suffix := range k.IgnoredSuffixes {
 			if strings.HasSuffix(path, suffix) {
 				return false
 			}
@@ -224,7 +185,7 @@ func (k *Kero) userAgentLabels(headers http.Header) MetricLabels {
 	if ua.Tablet {
 		formFactor = FormFactorTablet
 	}
-	if ua.Bot || isHttpClientLibrary(uaString) {
+	if ua.Bot || k.isHttpClientLibrary(uaString) {
 		formFactor = FormFactorBot
 	}
 
@@ -265,61 +226,13 @@ func (k *Kero) utmLabels(queryParams url.Values) MetricLabels {
 	}
 }
 
-var commonHttpClientLibraries = []string{
-	// go
-	"go-http-client",
-	"github.com/monaco-io",
-	"gentleman",
-	// node.js
-	"node-fetch",
-	"undici",
-	"axios",
-	// objective-c + swift
-	"alamofire",
-	"nsurlconnection",
-	"nsurlsession",
-	"urlsession",
-	"swifthttp",
-	// python
-	"python-", //-urlib3, -requests
-	// java
-	"apache-httpclient",
-	// php requests
-	"php-",
-	"zend",
-	"laminas",
-	"guzzlehttp",
-	// c#/.net todo
-	// C/c++ todo
-	// apps
-	"curl",
-	"wget",
-	"rapidapi",
-	"postman",
-	// Apple App Site Association
-	"aasa",
-	// RSS readers
-	"linkship",
-	"feedbin",
-	"feedly",
-	"artykul",
-	// others
-	"x11",
-	// render.com health check
-	"render",
-	"dataprovider.com",
-	"researchscan",
-	"zgrab",
-	"NetcraftSurveyAgent",
-}
-
-func isHttpClientLibrary(ua string) bool {
+func (k *Kero) isHttpClientLibrary(ua string) bool {
 	if len(ua) == 0 {
 		return true
 	}
 
 	ua = strings.ToLower(ua)
-	for _, clientName := range commonHttpClientLibraries {
+	for _, clientName := range k.IgnoredAgents {
 		if strings.HasPrefix(ua, clientName) {
 			return true
 		}
