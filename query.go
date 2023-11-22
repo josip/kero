@@ -26,7 +26,7 @@ type GroupMetricBy func(m Metric) string
 
 // Query looks for matching metrics within the specified timeframe.
 func (k *Kero) Query(metric string, labelFilters MetricLabels, start int64, end int64) ([]Metric, error) {
-	q, err := k.db.Querier(context.Background(), start, end)
+	q, err := k.db.Querier(start, end)
 	if err != nil {
 		return []Metric{}, err
 	}
@@ -37,7 +37,7 @@ func (k *Kero) Query(metric string, labelFilters MetricLabels, start int64, end 
 		catchAllMatcher, _ := plabels.NewMatcher(plabels.MatchRegexp, plabels.MetricName, ".*")
 		matchers = append(matchers, catchAllMatcher)
 	}
-	ss := q.Select(true, nil, matchers...)
+	ss := q.Select(context.Background(), true, nil, matchers...)
 	var metrics []Metric
 	for ss.Next() {
 		match := ss.At()
@@ -57,14 +57,14 @@ func (k *Kero) Query(metric string, labelFilters MetricLabels, start int64, end 
 
 // Count is an optimized version of AggregateDistinct counting occurrences of a metric in the specified timeframe.
 func (k *Kero) Count(metric string, start int64, end int64) int {
-	q, err := k.db.Querier(context.Background(), start, end)
+	q, err := k.db.Querier(start, end)
 	if err != nil {
 		return 0
 	}
 	defer q.Close()
 
 	matcher, _ := plabels.NewMatcher(plabels.MatchRegexp, plabels.MetricName, metric)
-	ss := q.Select(true, nil, matcher)
+	ss := q.Select(context.Background(), true, nil, matcher)
 
 	count := 0
 	for ss.Next() {
