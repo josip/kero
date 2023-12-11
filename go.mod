@@ -8,7 +8,7 @@ require (
 	github.com/josip/timewarp v1.0.0
 	github.com/mileusna/useragent v1.3.4
 	github.com/oschwald/geoip2-golang v1.9.0
-	github.com/prometheus/prometheus v0.48.0
+	github.com/prometheus/prometheus v0.48.1
 )
 
 require (
